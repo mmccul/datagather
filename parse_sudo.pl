@@ -24,9 +24,9 @@
 # Issues:
 # * No really clean way to avoid a global %opts state var since I use it
 #   to report debug state, as well as how to report entries
-# * List of sudoerfiles could probably be made local scope only
 # * aliases entry is currently listed as global, but could possibly be more
 #   limited in scope
+# * Haven't added the conditional JSON code, would require some refactoring
 #
 # License:
 # Written and owned by Mark McCullough.  
@@ -37,7 +37,6 @@ use Socket;
 use Sys::Hostname;
 
 our %opts;
-our @sudoerfiles;
 our %alias;
 our $hostname;
 
@@ -46,9 +45,11 @@ our $hostname;
 ####
 sub parse_args {
     my %opts;
-    getopts('hqdf:kn',\%opts);
+    getopts('hqdf:knp:',\%opts);
     if ( $opts{h} ) { usage(); }
-    if ( $opts{n} ) { $opts{n}=hostname(); }
+    if ( $opts{n} ) { 
+        $opts{n}=hostname(); 
+    } 
     return %opts;
 }
 
@@ -108,9 +109,14 @@ sub read_file {
     my @data;
     my $hostname;
 
-    # %h gets replaced by hostname up to first dot
+    # %h gets replaced by hostname up to first dot, another tweak to sudoers
+    # include syntax, not the cleanest, but working on it
     if ( $file =~ /%h/ ) {
-        $hostname=hostname();
+        if ( $opts{p} ) {
+            $hostname=$opts{p};
+        } else {
+            $hostname=hostname();
+        }
         $hostname=~s/\..+//;
         $file =~ s/%h/$hostname/;
     }
@@ -202,8 +208,10 @@ sub report {
             $runas=$entry{Runas};
         }
         $line="\"user\"=\"$entry{User}\" \"host\"=\"$entry{Host}\" \"runas=\"$runas\" \"tag\"=\"$entry{tag}\" \"cmnd\"=\"$esccmd\"";
-        if ( $opts{n} ) {
+        if ( $opts{n} && ! $opts{p} ) {
             $line=$line . " \"srchost\"=\"$opts{n}\"";
+        } elsif ( $opts{n} && $opts{p} ) {
+            $line=$line . " \"srchost\"=\"$opts{p}\"";
         }
     } else {
         $line=mkline(\%entry);
@@ -217,6 +225,7 @@ sub report {
 my @sudo_lines;
 my @cmds;
 my @parts=("User","Host","Runas","Cmnd");
+my @sudoerfiles;
 
 %opts=parse_args();
 
