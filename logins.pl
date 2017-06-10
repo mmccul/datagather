@@ -162,10 +162,13 @@ sub getgroups {
 
 }
 
+####
+# If you don't know the usage routine by now...
+####
 sub usage {
     print "Display user logins information\n";
     print "$0 [-h]\n";
-    print "$0 [-jtkpn] [-g groupname] [-l username]\n";
+    print "$0 [-jknpst] [-g groupname] [-l username] [-a conf]\n";
     printf ("%-8s : Output traditional colon separated format\n","-t");
     printf ("%-8s : Output JSON\n","-j");
     printf ("%-8s : Use pretty format for JSON output\n","-p");
@@ -174,12 +177,13 @@ sub usage {
     printf ("%-8s : Only print users who are members of the named group\n","-g group");
     printf ("%-8s : Add name of host invoking such in key value or JSON\n","-n");
     printf ("%-8s : Add SSH authorized keys in key value or JSON\n","-s");
+    printf ("%-8s : Use conf instead of /etc/ssh/sshd_config\n","-a conf");
 }
 
 ####
 # Find authorized_keys files to search
 # Intended to be called once, but multi-run safe
-# Assumes sshd_config in /etc/ssh
+# Use -a conf to change where config lives away from /etc/ssh/sshd_config
 ####
 sub get_keyfiles {
     if ( @keyfiles ) {
@@ -187,7 +191,7 @@ sub get_keyfiles {
     }
     my $FH;
     @keyfiles=(".ssh/authorized_keys",".ssh/authorized_keys2");
-    open ($FH,"/etc/ssh/sshd_config");
+    open ($FH,$opts{a});
 
     while ( my $line = <$FH> ) {
         $line =~ s/^\s*//;
@@ -221,6 +225,7 @@ sub grabkeys {
             open ($FH,"$homedir/$keyfile") || die "$homedir/$keyfile exists but cannot read\n";
             while (my $line = <$FH>) {
                 chomp ($line);
+                if ( $line =~ /^#/ ) { next; }
                 push @keys,$line;
             }
         }
@@ -233,7 +238,7 @@ sub grabkeys {
 ####
 
 # Parse options
-getopts('hjtkpl:g:ns', \%opts);
+getopts('ha:jtkpl:g:ns', \%opts);
 
 if ( $opts{h} ) {
     &usage;
@@ -248,6 +253,10 @@ if ( $os =~ /bsd/i ) {
 
 if ( $opts{n} ) {
     $opts{n}=hostname();
+}
+
+if ( ! $opts{a} ) {
+    $opts{a}="/etc/ssh/sshd_config";
 }
 
 if ( ! $opts{j} && ! $opts{k} ) {
