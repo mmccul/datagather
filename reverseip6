@@ -1,0 +1,43 @@
+#!/usr/bin/perl
+############################################################################
+# Reverse an IPv6 address for generating PTR zones
+# Does not properly handle :: at this time.  Simple, not right
+############################################################################
+use strict;
+use Getopt::Std;
+
+our %opts;
+
+sub parse_args {
+    my %opts;
+    getopts('hdi:',\%opts);
+    return %opts;
+}
+
+sub do_reverse {
+    my $ip=shift;
+    # $ip = scalar reverse $ip;
+    $ip = join('.',split(//,scalar reverse $ip));
+    return $ip;
+}
+
+sub clean {
+    my $entry=shift;
+    # Hmm, need to expand out :: to lots of 0s
+    # Some day soon
+    $entry=~s/[:\.]+//g;
+    return $entry;
+}
+  
+sub validate {
+    my $ip=shift;
+    $ip=~/[a-f0-9:\.]+/ || return 0;
+    return 1;
+}
+
+####
+# main
+####
+%opts=parse_args();
+validate($opts{i}) || die "What IP? (missing -i $IP)\n";
+print do_reverse(clean ($opts{i})),"\n";
