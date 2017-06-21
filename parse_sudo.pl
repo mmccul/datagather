@@ -272,7 +272,7 @@ LINE: while (my $entryptr = shift @cmds) {
 
     foreach my $part (@parts) {
         debug ("$part analysis on $entry{$part}");
-        foreach my $element (split (/(?<!\\),/,$entry{$part})) {
+        foreach my $element (split (/(?<!\\),\s*/,$entry{$part})) {
             my %newentry=%entry;
             if ( $alias{$part}{$element} ) {
                 debug ("Expanding $element to $alias{$part}{$element}");
