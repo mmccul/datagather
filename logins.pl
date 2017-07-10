@@ -375,9 +375,9 @@ if ( $opts{k} ) {
         for my $key (keys (%{$userent})) {
             if ( ref ${$userent}{$key} eq "ARRAY" ) {
                 my $arraystr= join (',',@{${$userent}{$key}});
-                printf("\"%s\"=\"%s\" ",$key,$arraystr);
+                printf("%s=\"%s\" ",$key,$arraystr);
             } else {
-                printf("\"%s\"=\"%s\" ",$key,${$userent}{$key});
+                printf("%s=\"%s\" ",$key,${$userent}{$key});
             }
         }
         print "\n";
