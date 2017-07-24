@@ -200,8 +200,8 @@ sub get_keyfiles {
             next;
         }
         if ( $line =~ /^Match\s/ ) { return @keyfiles; }
-        if ( $line =~ /^AuthorizedKeysFile\s+(?<results>.+)/ ) {
-            push (@keyfiles,split(/\s+/,$+{results}));
+        if ( $line =~ /^AuthorizedKeysFile\s+(.+)/ ) {
+            push (@keyfiles,split(/\s+/,$1));
             last;
         }
     }
