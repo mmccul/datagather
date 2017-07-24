@@ -27,6 +27,9 @@
 # * aliases entry is currently listed as global, but could possibly be more
 #   limited in scope
 # * Haven't added the conditional JSON code, would require some refactoring
+# * Yes, I know I should use named capture groups, but they don't work on
+#   11+ year old versions of perl, which I ran into, lots of refactoring for
+#   working around that, much uglier.
 #
 # License:
 # Written and owned by Mark McCullough.  
@@ -125,11 +128,11 @@ sub read_file {
     while ( my $line=<$fh> ) {
         $line =~ s/^\s+//;
         chomp $line;
-        if ( $line =~ /^#include (?<includefile>.+)/ ) {
-            push (@data,read_file($+{includefile}));
+        if ( $line =~ /^#include (.+)/ ) {
+            push (@data,read_file($1));
         }          
-        if ( $line =~ /^#includedir (?<includedir>.+)/ ) { 
-            push (@data,read_dir($+{includedir}));
+        if ( $line =~ /^#includedir (.+)/ ) { 
+            push (@data,read_dir($1));
         }
         $line =~ s/#.*$//;
         if ( $line =~ /^Defaults/ ) { next; }
@@ -207,7 +210,7 @@ sub report {
         } else {
             $runas=$entry{Runas};
         }
-        $line="user=\"$entry{User}\" host=\"$entry{Host}\" runas=\"$runas\" tag=\"$entry{tag}\" cmnd=\"$esccmd\"";
+        $line="user=\"$entry{User}\" runhost=\"$entry{Host}\" runas=\"$runas\" tag=\"$entry{tag}\" cmnd=\"$esccmd\"";
         if ( $opts{n} && ! $opts{p} ) {
             $line=$line . " srchost=\"$opts{n}\"";
         } elsif ( $opts{n} && $opts{p} ) {
@@ -245,16 +248,25 @@ while (my $file = shift @sudoerfiles) {
 # aliases, building a hash of aliases
 while (my $line = shift @sudo_lines) {
     my %entry;
-    if ( $line =~ /(?<alias_type>(User|Host|Runas|Cmnd))_Alias\s+(?<alias_name>[^=\s]+)\s*=\s*(?<alias_contents>.+)/ ) {
-        $alias{$+{alias_type}}->{$+{alias_name}}=$+{alias_contents};
+    if ( $line =~ /((?:User|Host|Runas|Cmnd))_Alias\s+([^=\s]+)\s*=\s*(.+)/ ) {
+        $alias{$1}->{$2}=$3;
         next;
     }
-    $line =~ /^(?<user>[^\s]+)\s+(?<host>[^\s=]+)\s*=\s*(\((?<runas>[^\)]+)\))?\s*(?<tag>(NOEXEC:|EXEC:|PASSWD:|NOPASSWD:|SETENV:|NOSETENV:|LOG_INPUT:|NOLOG_INPUT:|LOG_OUTPUT:|NOLOG_OUTPUT:)+)?\s*(?<cmd>.+)/;
-    $entry{User}=$+{user};
-    $entry{Host}=$+{host};
-    $entry{Runas}=$+{runas};
-    $entry{Cmnd}=$+{cmd};
-    $entry{tag}=$+{tag};
+    $line =~ /^([^\s]+)\s+([^\s=]+)\s*=\s*(.+)/;
+    $entry{User}=$1;
+    $entry{Host}=$2;
+    my $rest=$3;
+    if ( $rest =~ /^\s*\(([^)]+)\)\s*(.+)/ ) {
+        $entry{Runas}=$1;
+        $rest=$2;
+    }
+    if ( $rest =~ /^\s*((?:NOEXEC:|EXEC:|PASSWD:|NOPASSWD:|SETENV:|NOSETENV:|LOG_INPUT:|NOLOGIN_INPUT:|LOG_OUTPUT:|NOLOG_OUTPUT:)+)\s*(.+)/ ) {
+        $entry{tag}=$1;
+        print "Captured tag $entry{tag}\n";
+        $entry{Cmnd}=$2;
+    } else {
+        $entry{Cmnd}=$rest;
+    }
     
     push (@cmds,\%entry);
 }
@@ -283,13 +295,16 @@ LINE: while (my $entryptr = shift @cmds) {
             }
             $newentry{$part}=$element;
             if ( $part eq "Cmnd" ) {
-                $newentry{Cmnd} =~ /(?<tag>(NOEXEC:|EXEC:|PASSWD:|NOPASSWD:|SETENV:|NOSETENV:|LOG_INPUT:|NOLOG_INPUT:|LOG_OUTPUT:|NOLOG_OUTPUT:)+)?\s*(?<rest>.+)/;
-                if ( $+{tag} ne "" ) {
-                    $entry{tag}=$+{tag};
-                    debug ("tag: Set tag to |$+{tag}|");
-                    $newentry{tag}=$+{tag};
-                    $newentry{Cmnd}=$+{rest};
-                }
+                my $tag;
+                my $rest;
+                if ( $newentry{Cmnd} =~ /^((?:NOEXEC:|EXEC:|PASSWD:|NOPASSWD:|SETENV:|NOSETENV:|LOG_INPUT:|NOLOG_INPUT:|LOG_OUTPUT:|NOLOG_OUTPUT:)+)\s*(.+)/ ) { 
+                    $tag=$1;
+                    $rest=$2;
+                    $entry{tag}=$tag;
+                    debug ("tag: Set tag to |$tag|");
+                    $newentry{tag}=$tag;
+                    $newentry{Cmnd}=$rest;
+                } 
             }
             if ( comphash (\%entry,\%newentry) == 0 ) {
                 my $newline=mkline(\%newentry);
