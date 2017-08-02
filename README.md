@@ -8,6 +8,7 @@ parse_sudo:
   - A few possible output options, each one host, one user, one runas, one user:
     - Valid sudoers lines
     - key=value
+  - Requires perl >= 5.10 (I use named capture groups for sanity)
     
 logins:
   - Like logins(1M) of yore, but works
@@ -19,5 +20,6 @@ logins:
     - NP: Password is empty (null)
   - Can output key=value, colon separated fields, or JSON.
     - Not all fields printed in colon separated format.
+  - Requires perl >= 5.10 (I use named capture groups for sanity)
 
 (1): At least, I've yet to find anything that passes visudo that it doesn't correctly parse.
