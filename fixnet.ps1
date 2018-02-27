@@ -13,8 +13,9 @@
         <netmask />
       </v4>
       <dns>
-        <dns4 />
-        <dns6 />
+        <srvr>
+          <ip /> <!-- one or more of these -->
+        </srvr>
         <searchpath /> <!-- one or more of these -->
       </dns>
     </netdata>
@@ -133,12 +134,11 @@ foreach ( $ssid in $netdata.config.netdata.ssid) {
                 set-dnsclientglobalsetting `
                   -SuffixSearchList $netdata.config.netdata[$i].dns.searchpath
             }
-            if ( $netdata.config.netdata[$i].dns.dns4 -OR
-                 $netdata.config.netdata[$i].dns.dns6 ) {
+            if ( $netdata.config.netdata[$i].dns.srvr ) {
                 write-host "Static DNS"
                 $out=set-dnsclientserveraddress `
                   -InterfaceIndex $index `
-                  -ServerAddresses $dns
+                  -ServerAddresses $netdata.config.netdata[$i].dns.srvr.ip
             }
         }
         if ( -Not $netdata.config.netdata[$i].dns -And
