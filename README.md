@@ -22,4 +22,9 @@ logins:
     - Not all fields printed in colon separated format.
   - Requires perl >= 5.10 (I use named capture groups for sanity)
 
+fixnet:
+  - A powershell script that allows me to semi-duplicate network locations
+  - Config by Wi-Fi SSID only for now
+  - Missing entry means dynamic.
+
 (1): At least, I've yet to find anything that passes visudo that it doesn't correctly parse.
