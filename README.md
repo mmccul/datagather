@@ -8,8 +8,7 @@ parse_sudo:
   - A few possible output options, each one host, one user, one runas, one user:
     - Valid sudoers lines
     - key=value
-  - This version is harder to read, but is designed to operate on very old perl
-    - Makes no use of named capture groups
+  - Requires perl >= 5.10 (I use named capture groups for sanity)
     
 logins:
   - Like logins(1M) of yore, but works
@@ -21,7 +20,11 @@ logins:
     - NP: Password is empty (null)
   - Can output key=value, colon separated fields, or JSON.
     - Not all fields printed in colon separated format.
-  - This version is harder to read, but is designed to operate on very old perl
-    - Makes no use of named capture groups
+  - Requires perl >= 5.10 (I use named capture groups for sanity)
+
+fixnet:
+  - A powershell script that allows me to semi-duplicate network locations
+  - Config by Wi-Fi SSID only for now
+  - Missing entry means dynamic.
 
 (1): At least, I've yet to find anything that passes visudo that it doesn't correctly parse.
