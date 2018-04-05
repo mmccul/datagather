@@ -131,6 +131,10 @@ sub read_file {
         if ( $line =~ /^#includedir (?<includedir>.+)/ ) { 
             push (@data,read_dir($+{includedir}));
         }
+        # It turns out, sudoers expects a line starting #\d+ to be valid
+        if ( $line =~ /^#\d+\s/ ) {
+            push (@data,$line);
+        }
         $line =~ s/#.*$//;
         if ( $line =~ /^Defaults/ ) { next; }
         if ( $line ne "" ) { 

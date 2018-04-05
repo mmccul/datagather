@@ -92,6 +92,7 @@ foreach ( $ssid in $netdata.config.netdata.ssid) {
               -Dhcp Enabled
 
             ipconfig /renew "Wi-Fi"
+            start-path "http://www.example.com/"
         }
 
         if ( $netdata.config.netdata[$i].v6.ip ) {
@@ -172,5 +173,6 @@ if ( $found -eq 0 ) {
      -Dhcp Enabled
 
      ipconfig /renew "Wi-Fi"
+     start-path "http://www.example.com/"
 } 
  
