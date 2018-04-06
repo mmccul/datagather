@@ -99,6 +99,20 @@ sub read_dir {
     return @data;
 }
 
+sub linecont {
+    my $line=shift;
+    my $fh=shift;
+
+    while ( $line =~ /\\$/ ) {
+        chomp $line;
+        chop $line;
+        $line = $line . <$fh>;
+    }
+    $line =~s/\s+/ /g;
+    return $line;
+}
+        
+
 ####
 # Read in an actual file.  The key thing this does is locate inclusions and
 # recurse on those so that included directives occur in the right spot
@@ -131,13 +145,21 @@ sub read_file {
         if ( $line =~ /^#includedir (?<includedir>.+)/ ) { 
             push (@data,read_dir($+{includedir}));
         }
-        # It turns out, sudoers expects a line starting #\d+ to be valid
         if ( $line =~ /^#\d+\s/ ) {
+            debug ("Numeric UID on $line");
+            $line=linecont($line,$fh);
+            $line =~ s/#(?!\d+).*$//;
+            debug ("Numeric Push |$line|");
             push (@data,$line);
-        }
+            next;
+        } 
         $line =~ s/#.*$//;
+        $line=linecont($line,$fh);
+        $line =~ s/#.*$//;
+        debug ("linecont returned $line"); 
         if ( $line =~ /^Defaults/ ) { next; }
         if ( $line ne "" ) { 
+            debug ("Push |$line|");
             push (@data,$line);
         }
     }
