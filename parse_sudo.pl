@@ -85,6 +85,22 @@ sub usage {
 }
 
 ####
+# Handle continued lines
+####
+sub linecont {
+    my $line=shift;
+    my $fh=shift;
+
+    while ( $line =~/\\$/ ) {
+        chomp $line;
+        chop $line;
+        $line = $line . <$fh>;
+    }
+    $line =~ s/\s+/ /g;
+    return $line;
+}
+
+####
 # Ah, useful stuff!  Here, we read directories and include the right files,
 # calling read_file on each file.  This gets called from read_file itself
 ####
@@ -134,6 +150,15 @@ sub read_file {
         if ( $line =~ /^#includedir (.+)/ ) { 
             push (@data,read_dir($1));
         }
+        if ( $line =~ /^#\d+\s/ ) {
+            debug ("Numeric ID on $line");
+            $line=linecont($line,$fh);
+            $line =~s/#(?!\d).*$//;
+            push (@data,$line);
+            next;
+        }
+        $line =~ s/#.*$//;
+        $line=linecont($line,$fh);
         $line =~ s/#.*$//;
         if ( $line =~ /^Defaults/ ) { next; }
         if ( $line ne "" ) { 
