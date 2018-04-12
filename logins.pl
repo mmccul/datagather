@@ -304,7 +304,6 @@ while ( my $user = <$FH> ) {
         close ($SH);
 
         ($spnam,$sppasswd,$lastchg,$minage,$maxage,$warnage,$inactive,$expire,$reserved) = split(/:/,$shadow);
-        $passwd=$sppasswd;
     } else {
         # BSD getent doesn't return expire or things like that, must use pw show
         open ($SH, "$pw user show $name|");
@@ -318,6 +317,9 @@ while ( my $user = <$FH> ) {
         # A kludge because BSD uses 0 for no expiration, Linux, 0 has expiration
         if ( $expire == 0 ) { $expire=-1; }
     } 
+    if ( $spnam ) { 
+        $passwd=$sppasswd;
+    }
     if ( $expire eq "" ) { $expire=-1; }
     if ( $lastchg eq "" ) { $lastchg=-1; }
     if ( $minage eq "" ) { $minage=-1; }
