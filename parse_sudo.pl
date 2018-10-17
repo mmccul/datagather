@@ -150,16 +150,11 @@ sub read_file {
         if ( $line =~ /^#includedir (.+)/ ) { 
             push (@data,read_dir($1));
         }
-        if ( $line =~ /^#\d+\s/ ) {
-            debug ("Numeric ID on $line");
-            $line=linecont($line,$fh);
-            $line =~s/#(?!\d).*$//;
-            push (@data,$line);
-            next;
-        }
-        $line =~ s/#.*$//;
+        # Turns out, more than one numeric UID on a line as '#\d+'
+        # Validated that this matches visudo
+        # Also, line continuation on a comment is illegal, per visudo -c
+        $line =~ s/#[^\d]+.*$//;
         $line=linecont($line,$fh);
-        $line =~ s/#.*$//;
         if ( $line =~ /^Defaults/ ) { next; }
         if ( $line ne "" ) { 
             push (@data,$line);
@@ -273,21 +268,25 @@ while (my $file = shift @sudoerfiles) {
 # aliases, building a hash of aliases
 while (my $line = shift @sudo_lines) {
     my %entry;
-    if ( $line =~ /((?:User|Host|Runas|Cmnd))_Alias\s+([^=\s]+)\s*=\s*(.+)/ ) {
+    if ( $line =~ /((?:User|Host|Runas|Cmnd))_Alias\s+([A-Z][A-Z0-9_]*)\s*=\s*(.+)/ ) {
         $alias{$1}->{$2}=$3;
+        debug ("_main: Captured alias of type $1, named $2, contents |$3|");
         next;
     }
-    $line =~ /^([^\s]+)\s+([^\s=]+)\s*=\s*(.+)/;
+    $line =~ /^(.+)\s+([^\s=]+)\s*=\s*(.+)/;
     $entry{User}=$1;
     $entry{Host}=$2;
     my $rest=$3;
-    if ( $rest =~ /^\s*\(([^)]+)\)\s*(.+)/ ) {
+    if ( $rest =~ /^\s*\(\s*([^)]+)\s*\)\s*(.+)/ ) {
         $entry{Runas}=$1;
         $rest=$2;
+        $entry{Runas}=~s/\s+$//;
+    } else { 
+        $entry{Runas}="ALL"
     }
-    if ( $rest =~ /^\s*((?:NOEXEC:|EXEC:|PASSWD:|NOPASSWD:|SETENV:|NOSETENV:|LOG_INPUT:|NOLOGIN_INPUT:|LOG_OUTPUT:|NOLOG_OUTPUT:)+)\s*(.+)/ ) {
+    if ( $rest =~ /^\s*((?:NOEXEC:|EXEC:|PASSWD:|NOPASSWD:|SETENV:|NOSETENV:|LOG_INPUT:|NOLOGIN_INPUT:|LOG_OUTPUT:|NOLOG_OUTPUT:|MAIL:|NOMAIL:|FOLLOW:|NOFOLLOW:)+)\s*(.+)/ ) {
         $entry{tag}=$1;
-        print "Captured tag $entry{tag}\n";
+        debug ("Captured tag $entry{tag}\n");
         $entry{Cmnd}=$2;
     } else {
         $entry{Cmnd}=$rest;
