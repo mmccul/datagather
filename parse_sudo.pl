@@ -45,7 +45,7 @@ our $hostname;
 ####
 sub parse_args {
     my %opts;
-    getopts('hqdf:knp:',\%opts);
+    getopts('hqdf:knp:j',\%opts);
     if ( $opts{h} ) { usage(); }
     if ( $opts{n} ) { 
         $opts{n}=hostname(); 
@@ -75,6 +75,7 @@ sub usage {
     printf ("%-13s: %s\n","-h","This help");
     printf ("%-13s: %s\n","-d","Debug mode");
     printf ("%-13s: %s\n","-k","Output in key=value format");
+    printf ("%-13s: %s\n","-j","Output in JSON format, uses JSON pm");
     printf ("%-13s: %s\n","-f filename","Work on the specified filename");
     printf ("%-13s: %s\n","-q","Fatal errors should be silent");
     printf ("%-13s: %s\n","-n","In key/value form, print the hostname the entry came from");
@@ -145,18 +146,15 @@ sub read_file {
         if ( $line =~ /^#includedir (?<includedir>.+)/ ) { 
             push (@data,read_dir($+{includedir}));
         }
-        if ( $line =~ /^#\d+\s/ ) {
-            debug ("Numeric UID on $line");
-            $line=linecont($line,$fh);
-            $line =~ s/#(?!\d+).*$//;
-            debug ("Numeric Push |$line|");
-            push (@data,$line);
-            next;
-        } 
-        $line =~ s/#.*$//;
+        # Broken, can have more than one numeric ID on line
         $line=linecont($line,$fh);
-        $line =~ s/#.*$//;
         debug ("linecont returned $line"); 
+
+        # So it turns out, you can have numeric userIDs as '#\d+' format
+        # But those are tricky.  So delete comments based on not that pattern
+        # You aren't allowed that pattern as a comment start per visudo,
+        # so it is safe to use that as our trimmer.
+        $line =~ s/#[^\d]+.*//;
         if ( $line =~ /^Defaults/ ) { next; }
         if ( $line ne "" ) { 
             debug ("Push |$line|");
@@ -239,6 +237,7 @@ sub report {
         } elsif ( $opts{n} && $opts{p} ) {
             $line=$line . " srchost=\"$opts{p}\"";
         }
+
     } else {
         $line=mkline(\%entry);
     }
@@ -254,6 +253,9 @@ my @parts=("User","Host","Runas","Cmnd");
 my @sudoerfiles;
 
 %opts=parse_args();
+if ( $opts{j} ) {
+    require 'JSON.pm';
+}
 
 if ( $opts{f} ) {
     push (@sudoerfiles,$opts{f});
@@ -271,17 +273,28 @@ while (my $file = shift @sudoerfiles) {
 # aliases, building a hash of aliases
 while (my $line = shift @sudo_lines) {
     my %entry;
-    if ( $line =~ /(?<alias_type>(User|Host|Runas|Cmnd))_Alias\s+(?<alias_name>[^=\s]+)\s*=\s*(?<alias_contents>.+)/ ) {
+
+    # This giant regex is the match for an alias of any kind
+    # Per the sudoers man page an alias name must be an upper case letter,
+    # followed by an optional upper alphanum or underscore.  Confirmed by
+    # visudo -c
+    if ( $line =~ /(?<alias_type>(User|Host|Runas|Cmnd))_Alias\s+(?<alias_name>[A-Z][A-Z0-9_]*)\s*=\s*(?<alias_contents>.+)/ ) {
         $alias{$+{alias_type}}->{$+{alias_name}}=$+{alias_contents};
         next;
     }
-    $line =~ /^(?<user>[^\s]+)\s+(?<host>[^\s=]+)\s*=\s*(\((?<runas>[^\)]+)\))?\s*(?<tag>(NOEXEC:|EXEC:|PASSWD:|NOPASSWD:|SETENV:|NOSETENV:|LOG_INPUT:|NOLOG_INPUT:|LOG_OUTPUT:|NOLOG_OUTPUT:)+)?\s*(?<cmd>.+)/;
+
+    # This giant match is the master regex for a valid sudoers line.  Yes,
+    # it is a mess.  
+    $line =~ /^(?<user>.+)\s+(?<host>[^=]+)\s*=\s*(?:\(\s*(?<runas>[^\)]+)\s*\))?\s*(?<tag>(?:NOEXEC:|EXEC:|FOLLOW:|NOFOLLOW:|MAIL:|NOMAIL:|PASSWD:|NOPASSWD:|SETENV:|NOSETENV:|LOG_INPUT:|NOLOG_INPUT:|LOG_OUTPUT:|NOLOG_OUTPUT:)+)?\s*(?<cmd>.+)/;
     $entry{User}=$+{user};
     $entry{Host}=$+{host};
     $entry{Runas}=$+{runas};
     $entry{Cmnd}=$+{cmd};
     $entry{tag}=$+{tag};
     
+    # Because of the nature of the Runas, we need another space trimmer to
+    # ensure no trailing spaces
+    $entry{Runas}=~ s/\s+$//;
     push (@cmds,\%entry);
 }
 
