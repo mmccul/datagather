@@ -307,6 +307,8 @@ LINE: while (my $entryptr = shift @cmds) {
     debug ("_main: Parsing |$debugstr|");
 
     foreach my $part (@parts) {
+        # More extraneous spaces to fix
+        $entry{$part} =~ s/\s+//;
         debug ("$part analysis on $entry{$part}");
         foreach my $element (split (/(?<!\\),\s*/,$entry{$part})) {
             my %newentry=%entry;
