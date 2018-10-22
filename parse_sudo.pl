@@ -146,7 +146,8 @@ sub read_file {
         if ( $line =~ /^#includedir (?<includedir>.+)/ ) { 
             push (@data,read_dir($+{includedir}));
         }
-        # Broken, can have more than one numeric ID on line
+
+        # Handle line continuation characters
         $line=linecont($line,$fh);
         debug ("linecont returned $line"); 
 
@@ -294,7 +295,7 @@ while (my $line = shift @sudo_lines) {
     
     # Because of the nature of the Runas, we need another space trimmer to
     # ensure no trailing spaces
-    $entry{Runas}=~ s/\s+$//;
+    $entry{Cmnd}=~ s/\s+$//;
     push (@cmds,\%entry);
 }
 
@@ -310,7 +311,9 @@ LINE: while (my $entryptr = shift @cmds) {
     debug ("_main: Parsing |$debugstr|");
 
     foreach my $part (@parts) {
-        debug ("$part analysis on $entry{$part}");
+        # Extraneous line breaks creep in everywhere
+        $entry{$part} =~ s/\s+$//;
+        debug ("$part analysis on |$entry{$part}|");
         foreach my $element (split (/(?<!\\),\s*/,$entry{$part})) {
             my %newentry=%entry;
             if ( $alias{$part}{$element} ) {
