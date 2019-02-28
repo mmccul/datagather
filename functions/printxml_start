@@ -1,0 +1,34 @@
+# printxml will take the results, sanity test and print the XML results
+# Arguments expected are:
+# 1. Caller name
+# 2. Check number
+# 3. Result
+printxml_start() {
+  _printxml_name=$1
+  _printxml_num=$2
+  _printxml_result=$3
+
+
+  # Make sure we have all the fields we require
+  if [ -z "${_printxml_name}" ]; then
+    fatal "printxml" "No check name provided"
+  fi
+  if [ -z "${_printxml_num}" ]; then
+    fatal "printxml" "No check number provided"
+  fi
+  if [ -z "${_printxml_result}" ]; then
+    _printxml_result="info"
+  fi
+
+  # Now pretty print in XML
+  printf "<module>\n"
+  printf "  <name>%s</name>\n" ${_printxml_name} 
+  printf "  <num>%d</num>\n" ${_printxml_num} 
+  printf "  <result>%s</result>\n" ${_printxml_result}
+  printf "  <reason>\n"
+
+  # Final cleanup
+  unset _printxml_name
+  unset _printxml_num
+  unset _printxml_result
+}

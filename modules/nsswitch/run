@@ -1,0 +1,24 @@
+NAME=nsswitch
+NUM=12
+
+if [ ! -f /etc/nsswitch.conf ]; then
+    printxml "$NAME" "$NUM" "fail" "Missing /etc/nsswitch.conf"
+else
+    printxml_start "$NAME" "$NUM" "info"
+    awk '
+        /^[[:space:]]*#/ { next }
+        /^[[:space:]]*$/ { next }
+        {
+            keylen=length($1)
+            key=substr($1,1,keylen-1)
+            printf ("    <%s>\n",key)
+            $1=""
+            split($0,ar)
+            for (item in ar) {
+                printf ("      <item>%s</item>\n",ar[item])
+            }
+            printf ("    </%s>\n",key)
+        }
+    ' < /etc/nsswitch.conf
+    printxml_end 
+fi

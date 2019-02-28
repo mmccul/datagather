@@ -1,0 +1,20 @@
+NAME="OS_basics"
+NUM=2
+OSSTR=$(getos)
+OS=${OSSTR%%|*}
+DIST=${OSSTR#${OS}|}
+DIST=${DIST%%|*}
+VER=${OSSTR##*|}
+MAJVER=${VER%%.*}
+MINVER=${VER#*.}
+
+if [ -z "${DIST}" -o -z "${MAJVER}" ]; then
+    printxml "$NAME" "$NUM" "fail" "Cannot obtain OS version or major version"
+else
+    printxml_start "$NAME" "$NUM" "info"
+    printf "    <os>$OS</os>\n"
+    printf "    <distro>$DIST</distro>\n"
+    printf "    <major>$MAJVER</major>\n"
+    printf "    <patch_level>$MINVER</patch_level>\n"
+    printxml_end
+fi

@@ -1,0 +1,11 @@
+PERLBIN="$(which perl 2>/dev/null)"
+NAME=sudoers
+NUM=6
+
+if [ -z "${PERLBIN}" ]; then
+    printxml "$NAME" "$NUM" "fail" "no usable perl found"
+else
+    printxml_start "${NAME}" "$NUM" "info"
+    ${PERLBIN} ${MODULE_DIR}/${NAME}/parse_sudo.pl -x | sed -E 's/^/    /'
+    printxml_end
+fi

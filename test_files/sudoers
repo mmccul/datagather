@@ -7,7 +7,8 @@ Cmnd_Alias CMDS_1=/usr/bin/cmd1 "a\,b", \
     /usr/bin/cmd2
 Cmnd_Alias CMDS_2=/usr/bin/cmd3 start "*"
 Cmnd_Alias ALL_CMDS = CMDS_1,CMDS_2,/standalone/command/here
-USERS_1 ALL=( ALL ) MAIL: /usr/bin/cmd1, /usr/bin/cmd2
+USERS_1 ALL=( ALL ) PASSWD:MAIL: /usr/bin/cmd1, /usr/bin/cmd2
+USERS_1 ALL=( ALL ) SETENV: /usr/bin/cmd4, NOMAIL: /usr/bin/cmd3
 # Crazy comment 1 \
 # Comment 2 \
 # Illegal comment

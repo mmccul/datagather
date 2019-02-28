@@ -1,0 +1,10 @@
+# printxml will take the results, sanity test and print the XML results
+# Arguments expected are:
+# 1. Caller name
+# 2. Check number
+# 3. Result
+printxml_end() {
+
+  printf "  </reason>\n"
+  printf "<module>\n"
+}

@@ -12,6 +12,8 @@ for function in $(ls ${FPATH}); do
 done
 
 MODLIST=$(ls ${MODULE_DIR}/*/run)
+printf "<datagather>\n"
 for module in ${MODLIST}; do
     . ${module}
 done
+printf "</datagather>\n"

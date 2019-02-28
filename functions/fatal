@@ -7,7 +7,7 @@ fatal () {
     _fatal_caller="UNK"
   fi
 
-  printf "ERROR-${_fatal_caller}: %s\n" ${_fatal_msg}
+  printf "ERROR-${_fatal_caller}: %s\n" ${_fatal_msg} >&2
   unset _fatal_caller
   unset _fatal_msg
 }

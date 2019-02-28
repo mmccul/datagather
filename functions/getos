@@ -1,0 +1,27 @@
+# Return the OS version
+getos () {
+    if [ -z "$(which uname 2>/dev/null)" ]; then
+        fatal "Missing uname"
+        return
+    fi
+    _getos_nam=$(uname)
+    case $_getos_nam in
+        Linux)
+            if [ -f /etc/lsb-release ]; then
+                awk -F= '
+                  $1 == "DISTRIB_ID" { distrib=$2 }
+                  $1 == "DISTRIB_RELEASE" { rel=$2 }
+                  END {
+                      printf ("Linux|%s|%s",distrib,rel)
+                  }' /etc/lsb-release
+            elif [ -f /etc/redhat-release ]; then
+                uname -sr # Still need to parse that file
+            else
+                printf "Linux|%s|%s" $(uname -s) $(uname -r)
+            fi
+        ;;
+        *)
+            printf "%s|%s|%s" $(uname -s) $(uname -s) $(uname -r)
+            ;;
+    esac
+}
