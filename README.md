@@ -23,3 +23,11 @@ logins:
   - Requires perl >= 5.10 (I use named capture groups for sanity)
 
 (1): At least, I've yet to find anything that passes visudo that it doesn't correctly parse.
+
+# Coding standards
+Because this code needs to run on an insanely broad variety of systems, all
+code is to be written using as close to POSIX as feasible.  Additional commands
+should be checked for, not presumed, with workarounds for missing commands.
+
+In addition, commands that are POSIX, but known to be less commonly available,
+such as **bc** and **m4**, should be treated as risky.

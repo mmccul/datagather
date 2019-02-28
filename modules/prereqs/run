@@ -1,0 +1,29 @@
+# Read the dependencies from the file $MODULE_DIR/prereqs/deplist, one per line
+# Test that they are found and report anything missing
+# Pass means all dependencies found
+NAME=prereqs
+PREREQS=
+while read line; do
+    if [ -n "${PREREQS}" ]; then
+        PREREQS="$PREREQS $line"
+    else
+        PREREQS="$line"
+    fi
+done < $MODULE_DIR/$NAME/deplist
+MISSREQS=""
+
+for cmd in ${PREREQS}; do
+    if [ -z "$(which $cmd 2>/dev/null)" ]; then
+        if [ -n "${MISSREQS}" ]; then
+            MISSREQS="$MISSREQS|$cmd not found"
+        else
+            MISSREQS="$cmd not found"
+        fi
+    fi
+done
+
+if [ -n "${MISSREQS}" ]; then
+    printxml "prereqs" "1" "info" "$MISSREQS"
+else
+    printxml "prereqs" "1" "pass"
+fi

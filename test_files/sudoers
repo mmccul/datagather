@@ -1,0 +1,16 @@
+User_Alias USERS_1 = user1, user2, user3
+User_Alias ALL_USERS = USERS_1,\
+NUM_USERS
+User_Alias NUM_USERS=#501,#502
+Host_Alias HOST_1 = host1
+Cmnd_Alias CMDS_1=/usr/bin/cmd1 "a\,b", \
+    /usr/bin/cmd2
+Cmnd_Alias CMDS_2=/usr/bin/cmd3 start "*"
+Cmnd_Alias ALL_CMDS = CMDS_1,CMDS_2,/standalone/command/here
+USERS_1 ALL=( ALL ) MAIL: /usr/bin/cmd1, /usr/bin/cmd2
+# Crazy comment 1 \
+# Comment 2 \
+# Illegal comment
+#501, #502 myhost2=CMDS_1
+NUM_USERS myhost3=NOPASSWD:CMDS_2
+ALL_USERS HOST_1 = (nonrootusr) ALL_CMDS

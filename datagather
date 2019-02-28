@@ -1,0 +1,17 @@
+#!/bin/sh
+
+DIR=$(cd $(dirname $0); printf "$PWD")
+MODULE_DIR="${DIR}/modules"
+FPATH="${DIR}/functions"
+
+for function in $(ls ${FPATH}); do
+    if [ "${function%.*}" = "${function}" -a \
+         "${function#*.}" = "${function}" ]; then
+        . $FPATH/$function
+    fi
+done
+
+MODLIST=$(ls ${MODULE_DIR}/*/run)
+for module in ${MODLIST}; do
+    . ${module}
+done

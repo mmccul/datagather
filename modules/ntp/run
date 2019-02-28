@@ -1,0 +1,7 @@
+if [ -z "$(which ntpq -np)" ]; then
+    printxml "ntp" "10" "fail" "ntpq not found"
+elif [ -z "$(ps auxgww | grep -v grep | grep ntpd)" ]; then
+    printxml "ntp" "10" "fail" "ntpd not running"
+else
+    printxml "ntp" "10" "pass" "ntpd running"
+fi

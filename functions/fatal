@@ -1,0 +1,13 @@
+fatal () {
+  _fatal_caller=$1
+  shift
+  _fatal_msg=$*
+
+  if [ -z "${_fatal_caller}" ]; then
+    _fatal_caller="UNK"
+  fi
+
+  printf "ERROR-${_fatal_caller}: %s\n" ${_fatal_msg}
+  unset _fatal_caller
+  unset _fatal_msg
+}

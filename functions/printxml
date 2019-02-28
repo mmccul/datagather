@@ -1,0 +1,53 @@
+# printxml will take the results, sanity test and print the XML results
+# Arguments expected are:
+# 1. Caller name
+# 2. Check number
+# 3. Result
+# 4+ Zero or more reasons, pipe separated
+printxml() {
+  _printxml_name=$1
+  _printxml_num=$2
+  _printxml_result=$3
+  shift
+  shift
+  shift
+  _printxml_reason=$*
+
+
+  # Make sure we have all the fields we require
+  if [ -z "${_printxml_name}" ]; then
+    fatal "printxml" "No check name provided"
+  fi
+  if [ -z "${_printxml_num}" ]; then
+    fatal "printxml" "No check number provided"
+  fi
+  if [ -z "${_printxml_result}" ]; then
+    _printxml_result="info"
+  fi
+  if [ -z "${_printxml_reason}" -a \
+      \( "${_printxml_result}" != "info" -a \
+         "${_printxml_result}" != "pass" \) \
+     ]; then
+    fatal "printxml" "reason required but not provided.  name={_printxml_name} result=${_printxml_result}"
+  fi  
+
+
+  # Now pretty print in XML
+  printf "<module>\n"
+  printf "  <name>%s</name>\n" ${_printxml_name} 
+  printf "  <num>%d</num>\n" ${_printxml_num} 
+  printf "  <result>%s</result>\n" ${_printxml_result}
+  OLDIFS=$IFS
+  IFS="|"
+  for _printxml_reasoncode in ${_printxml_reason}; do
+    printf "  <reason>%s</reason>\n" "${_printxml_reasoncode}"
+  done
+  IFS=$OLDIFS
+  printf "<\module>\n"
+
+  # Final cleanup
+  unset _printxml_name
+  unset _printxml_num
+  unset _printxml_result
+  unset _printxml_reason
+}
