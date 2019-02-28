@@ -1,5 +1,16 @@
 # datagather
-Tools to collect useful data from systems
+Tool to collect useful information from systems.
+
+Modularly designed, this complete rewrite creates XML and relies on no more
+than POSIX and some minor additions that are fairly standard.
+
+# Legacy tools
+
+Some old stuff here is now explicitly legacy
+
+## standalone
+
+In the standalone directory:
 
 parse_sudo: 
   - Reliably parse any valid(1) sudoers file
@@ -8,6 +19,7 @@ parse_sudo:
   - A few possible output options, each one host, one user, one runas, one user:
     - Valid sudoers lines
     - key=value
+    - XML (for datagather), manually created, no XML lib needed
   - Requires perl >= 5.10 (I use named capture groups for sanity)
     
 logins:
@@ -18,7 +30,7 @@ logins:
     - NL: No valid password, account is still accessible by other means
     - LK: Account is completely disabled (yes, on Linux, this means expired account)
     - NP: Password is empty (null)
-  - Can output key=value, colon separated fields, or JSON.
+  - Can output key=value, colon separated fields, JSON, or XML.
     - Not all fields printed in colon separated format.
   - Requires perl >= 5.10 (I use named capture groups for sanity)
 
