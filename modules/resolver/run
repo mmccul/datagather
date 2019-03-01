@@ -1,0 +1,15 @@
+NAME=resolver
+NUM=9
+
+printxml_start "$NAME" "$NUM" "info"
+awk '
+  $1 == "nameserver" {
+    printf ("      <%s>%s</%s>\n","nameserver",$2,"nameserver")
+  }
+  $1 == "search" || $1 == "domain" {
+    $1=""
+    list=$0
+    printf ("      <%s>%s</%s>\n","domains",list,"domains")
+  } 
+' /etc/resolv.conf
+printxml_end

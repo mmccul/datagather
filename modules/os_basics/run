@@ -1,3 +1,7 @@
+# Report some basic OS information.  Relies mostly on the getos function.
+# Other modules may use that function to get the basic OS type, hence not
+# embedding it in here.
+
 NAME="OS_basics"
 NUM=2
 OSSTR=$(getos)

@@ -1,0 +1,12 @@
+for intr in $(ip -o link list | awk '{print substr($2,1,length($2)-1)}'); do
+    printf "      <addr>\n"
+    printf "        <name>%s</name>\n" $intr
+    ip address show dev $intr up primary | awk '
+      $1 ~ /inet/ { 
+        ip = $2
+        gsub (/\/.+/,"",ip)
+        printf ("        <ip>%s</ip>\n",ip)  
+      }
+    ' 
+    printf "      </addr>\n"
+done

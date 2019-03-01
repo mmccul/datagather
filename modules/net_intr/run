@@ -1,0 +1,7 @@
+NAME="net_intr"
+NUM="8"
+printxml_start "$NAME" "$NUM" "info"
+if [ -n "$(which ip 2>/dev/null)" ]; then
+    $MODULE_DIR/$NAME/run_ip
+fi
+printxml_end
