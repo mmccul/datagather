@@ -4,6 +4,8 @@
 NAME=prereqs
 PREREQS=
 while read line; do
+    line=${line%%#*}
+    line=${line% }
     if [ -n "${PREREQS}" ]; then
         PREREQS="$PREREQS $line"
     else
