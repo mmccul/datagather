@@ -238,7 +238,7 @@ sub report {
         } else {
             $runas=$entry{Runas};
         }
-        $line="user=\"$entry{User}\" host=\"$entry{Host}\" runas=\"$runas\" tag=\"$entry{tag}\" cmnd=\"$esccmd\"";
+        $line="user=\"$entry{User}\" hostname=\"$entry{Host}\" runas=\"$runas\" tag=\"$entry{tag}\" cmnd=\"$esccmd\"";
         if ( $opts{n} && ! $opts{p} ) {
             $line=$line . " srchost=\"$opts{n}\"";
         } elsif ( $opts{n} && $opts{p} ) {
